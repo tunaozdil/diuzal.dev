@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retina &amp; Beyond</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0f18; --surf:#14172a; --surf2:#1c2038; --border:#252840;
+  --t0:#e05252; --t0d:rgba(224,82,82,.14);
+  --t1:#4a9eff; --t1d:rgba(74,158,255,.14);
+  --gold:#f0b429; --goldd:rgba(240,180,41,.14);
+  --ok:#4ade80; --text:#e8eaf0; --dim:#6b7090;
+  --rad:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+[hidden]{display:none!important}
+button,input{font:inherit}
+body{background:var(--bg);color:var(--text);font-family:'Manrope',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;padding:0 18px;min-height:100vh;overflow-x:hidden}
+.screen{width:min(100%,clamp(860px,76vw,1180px))}
+
+/* ── Setup ── */
+#screen-setup{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:22px;text-align:center}
+.gtitle{font-size:clamp(2.4rem,5vw,5.1rem);font-weight:900;letter-spacing:.02em;line-height:1.05;background:linear-gradient(135deg,var(--t1) 0%,var(--t0) 55%,var(--gold) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.gsub{color:var(--dim);font-size:.85rem;letter-spacing:.1em;text-transform:uppercase}
+.setup-box{background:var(--surf);border:1px solid var(--border);border-radius:var(--rad);padding:32px;width:100%;max-width:560px;display:flex;flex-direction:column;gap:18px}
+.setup-row{display:flex;gap:14px}
+.tf{flex:1;display:flex;flex-direction:column;gap:7px}
+.tf label{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.tf input{background:var(--surf2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;padding:10px 13px;outline:none;transition:border-color .15s}
+.tf input:focus{border-color:var(--t1)}
+.setup-meta{color:var(--dim);font-size:.75rem}
+
+/* ── Buttons ── */
+.btn{border:none;border-radius:8px;cursor:pointer;font-size:.95rem;font-weight:700;padding:11px 22px;transition:opacity .15s,transform .1s;letter-spacing:.02em}
+.btn:hover{opacity:.88}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-primary{background:var(--t1);color:#000;width:100%;padding:13px;font-size:1rem}
+.btn-lesion{background:var(--t0);color:#fff}
+.btn-mech{background:var(--t1);color:#000}
+.btn-gold{background:var(--gold);color:#000}
+.btn-ok{background:var(--ok);color:#000}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.btn-sm{padding:8px 15px;font-size:.85rem}
+.btn-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:4px}
+
+/* ── HUD ── */
+#screen-game{min-height:100vh;padding:14px 0 22px;display:flex;flex-direction:column}
+#hud{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;padding:14px 0 12px;background:var(--bg);z-index:10;border-bottom:1px solid var(--border);margin-bottom:18px;flex-shrink:0}
+.hud-team{padding:10px 16px;border-radius:8px;transition:opacity .3s}
+.hud-team:not(.active){opacity:.38}
+#hud-t0{background:var(--t0d);color:var(--t0)}
+#hud-t1{background:var(--t1d);color:var(--t1);text-align:right}
+.hud-name{font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.hud-score{font-size:clamp(1.8rem,2.3vw,2.6rem);font-weight:900;transition:transform .3s,color .3s}
+.hud-score.flash{transform:scale(1.5);color:var(--ok)}
+.hud-mid{text-align:center;color:#c8ccda;font-size:clamp(.9rem,1vw,1.05rem);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+#hud-deck{font-size:clamp(1.9rem,2.4vw,2.7rem);font-weight:900;color:var(--text);line-height:1}
+
+/* ── Turn banner ── */
+#turn-banner{text-align:center;font-size:clamp(1rem,1.1vw,1.22rem);font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#d9dce8;margin-bottom:16px;min-height:26px;flex-shrink:0}
+#card-area{flex:1;display:flex;flex-direction:column;justify-content:center}
+
+/* ── Card ── */
+.card{background:var(--surf);border:1px solid var(--border);border-radius:var(--rad);padding:clamp(28px,3vw,44px);margin-bottom:16px}
+.badge{display:inline-block;font-size:.65rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:4px;margin-bottom:14px}
+.badge-lesion{background:var(--t0d);color:var(--t0);border:1px solid var(--t0)}
+.badge-mech{background:var(--t1d);color:var(--t1);border:1px solid var(--t1)}
+.badge-gold{background:var(--goldd);color:var(--gold);border:1px solid var(--gold)}
+.card-q{font-size:clamp(1.2rem,1.45vw,1.55rem);line-height:1.6;margin-bottom:18px}
+.card-a{background:var(--surf2);border-radius:8px;padding:15px 18px;margin-bottom:14px;border-left:3px solid var(--ok)}
+.card-a.lesion{border-left-color:var(--t0)}
+.card-a.mech{border-left-color:var(--t1)}
+.card-a.gold{border-left-color:var(--gold)}
+.a-label{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.a-text{font-size:clamp(1rem,1.05vw,1.15rem);line-height:1.55}
+
+/* ── Timer ── */
+.timer-wrap{margin:4px 0 18px}
+.timer-head{display:flex;justify-content:space-between;font-size:.72rem;color:var(--dim);margin-bottom:5px}
+.timer-track{height:8px;background:var(--surf2);border-radius:4px;overflow:hidden}
+.timer-bar{height:100%;border-radius:4px;transition:width .9s linear,background .5s}
+
+/* ── Card back ── */
+.card-back{background:var(--surf);border:1px solid var(--border);border-radius:var(--rad);min-height:min(48vh,430px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:background .15s;margin-bottom:16px;user-select:none}
+.card-back:hover{background:var(--surf2)}
+.card-back-icon{font-size:2.8rem;opacity:.3}
+.card-back-sub{color:var(--dim);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase}
+
+/* ── Demo ── */
+.demo-wrap{background:var(--surf2);border-radius:10px;padding:22px;margin-bottom:14px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.demo-instr{font-size:.9rem;color:var(--dim);text-align:center;line-height:1.55;max-width:720px}
+.demo-instr strong{color:var(--text)}
+canvas{border-radius:8px;display:block;max-width:100%}
+
+/* Afterimage */
+.aft-wrap{position:relative;width:420px;height:315px;max-width:100%;border-radius:8px;overflow:hidden}
+.aft-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;width:100%;height:100%}
+.aft-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:13px;height:13px;border-radius:50%;background:#777;border:2px solid rgba(255,255,255,.7);z-index:2;pointer-events:none}
+
+/* Dominant eye */
+.dom-target-panel{width:min(100%,420px);min-height:180px;border:1px solid var(--border);border-radius:8px;background:#10131f;display:flex;align-items:center;justify-content:center}
+.dom-target{width:34px;height:34px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 9px rgba(240,180,41,.16),0 0 26px rgba(240,180,41,.55)}
+.dom-choice{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.dom-result{min-height:22px;text-align:center;color:var(--gold);font-weight:700}
+
+/* ── Next-turn card ── */
+.pass-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--rad);padding:44px;text-align:center;margin-bottom:16px}
+.pass-to{font-size:.85rem;color:var(--dim);margin-bottom:10px;letter-spacing:.05em;text-transform:uppercase}
+.pass-name{font-size:1.6rem;font-weight:800;margin-bottom:26px}
+
+/* ── End ── */
+#screen-end{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:22px;text-align:center}
+.end-title{font-size:clamp(2rem,6vw,3.2rem);font-weight:900;background:linear-gradient(135deg,var(--gold),var(--ok));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.end-scores{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+.end-scard{background:var(--surf);border:1px solid var(--border);border-radius:var(--rad);padding:22px 34px;min-width:150px}
+.end-scard.winner{border-color:var(--gold);background:var(--goldd)}
+.end-sname{font-size:.75rem;color:var(--dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.end-spts{font-size:3rem;font-weight:900}
+.end-scard.winner .end-spts{color:var(--gold)}
+.end-sub{font-size:.8rem;color:var(--dim)}
+hr.sep{border:none;border-top:1px solid var(--border);margin:14px 0}
+@media(max-width:700px){body{padding:0 12px}.screen{width:100%}.setup-row{flex-direction:column}.card-q{font-size:1rem}#screen-game{padding-top:8px}.card{padding:22px}.hud-team{padding:8px 10px}}
+</style>
+</head>
+<body>
+
+<!-- ════════ SETUP ════════ -->
+<section id="screen-setup" class="screen">
+  <div class="gtitle">PSY350<br>Sensory Systems: <br> The Eye</div>
+  <div class="gsub">Visual Neuroscience Card Game</div>
+  <div class="setup-box">
+    <div class="setup-row">
+      <div class="tf"><label>Team 1</label><input id="inp-t1" type="text" value="Team A" maxlength="20"></div>
+      <div class="tf"><label>Team 2</label><input id="inp-t2" type="text" value="Team B" maxlength="20"></div>
+    </div>
+    <button class="btn btn-primary" onclick="startGame()">Start Game</button>
+    <div class="setup-meta">2–8 players · 2 teams · 29 cards · First to 20 pts wins</div>
+  </div>
+</section>
+
+<!-- ════════ GAME ════════ -->
+<section id="screen-game" class="screen" hidden>
+  <div id="hud">
+    <div id="hud-t0" class="hud-team">
+      <div class="hud-name" id="hname0">Team A</div>
+      <div class="hud-score" id="hscore0">0</div>
+    </div>
+    <div class="hud-mid">
+      <div id="hud-deck">29</div>
+      <div style="margin-top:4px">cards left</div>
+    </div>
+    <div id="hud-t1" class="hud-team">
+      <div class="hud-name" id="hname1">Team B</div>
+      <div class="hud-score" id="hscore1">0</div>
+    </div>
+  </div>
+  <div id="turn-banner"></div>
+  <div id="card-area"></div>
+</section>
+
+<!-- ════════ END ════════ -->
+<section id="screen-end" class="screen" hidden>
+  <div id="end-content"></div>
+</section>
+
+<script>
+// ═══════════════════════════════════
+// CARD DATA
+// ═══════════════════════════════════
+const CARDS = [
+  // — LESION (10) —
+  {type:'lesion',
+   q:`A patient loses vision in the right visual field of both eyes.`,
+   a:`Left optic tract lesion. After the chiasm, each optic tract carries the opposite visual hemifield, so the left tract represents the right visual field (Bear et al., pp. 312-314).`},
+  {type:'lesion',
+   q:`A tumor pressing on the middle of the optic chiasm causes loss of peripheral vision on both sides.`,
+   a:`Optic chiasm, especially the crossing nasal-retina fibers. Damage here produces bitemporal field loss because nasal retinal fibers carry the temporal/peripheral visual fields (Bear et al., pp. 312-314).`},
+  {type:'lesion',
+   q:`Complete blindness in the left eye only; the right eye is still normal.`,
+   a:`Left optic nerve lesion. Before the chiasm, an optic nerve carries information from one eye only (Bear et al., pp. 311-314).`},
+  {type:'lesion',
+   q:`A patient can describe objects, but cannot readily recognize familiar faces.`,
+   a:`Inferotemporal / ventral stream face-processing damage, producing prosopagnosia: difficulty recognizing faces despite otherwise usable vision (Bear et al., pp. 336-337).`},
+  {type:'lesion',
+   q:`A patient sees objects clearly but has trouble perceiving smooth motion, like pouring tea or crossing a street.`,
+   a:`Area MT/V5 in the dorsal stream. MT is specialized for object motion, and damage near MT/MST can selectively disrupt visual motion perception (Bear et al., pp. 334-336).`},
+  {type:'lesion',
+   q:`A patient loses color perception even though the retinal cones still work.`,
+   a:`Ventral occipital/temporal color-processing damage, often discussed around V4 and cortical achromatopsia. The problem is central, not missing cone photopigment (Bear et al., p. 336).`},
+  {type:'lesion',
+   q:`A patient recognizes objects, but cannot use vision well to locate them or guide reaching.`,
+   a:`Dorsal stream / occipital-parietal pathway damage. This stream supports visual motion analysis and visual control of action (Bear et al., pp. 333-336).`},
+  {type:'lesion',
+   q:`A small lesion removes the V1 tissue representing the fovea. What visual problem is most likely?`,
+   a:`A central scotoma with poor high-acuity vision. The fovea is overrepresented in the retinotopic map, so central visual field damage has a large cortical footprint (Bear et al., pp. 319-320).`},
+  {type:'lesion',
+   q:`Damage to parvocellular LGN layers is most likely to weaken which kind of vision?`,
+   a:`Fine detail and color. P-type ganglion cells project to parvocellular LGN layers; M-type cells project to magnocellular layers and are more motion-sensitive (Bear et al., pp. 316-317).`},
+  {type:'lesion',
+   q:`A person has normal acuity, but confuses red and green across everyday objects.`,
+   a:`A cone photopigment problem affecting the L/M cone comparison, not a general blindness. Red-green color blindness is commonly tied to missing or abnormal red/green cone pigments (Bear et al., p. 317).`},
+
+  // — MECHANISM (15) —
+  {type:'mechanism',
+   q:`Why can a faint star disappear when you stare straight at it, but return when you look slightly beside it?`,
+   a:`Direct fixation puts the star on foveal cones, which need more light. Looking aside places it on peripheral rods, which are more sensitive in scotopic vision (Bear et al., pp. 310-311).`},
+  {type:'mechanism',
+   q:`Why does the rod system detect dim light better than the cone system?`,
+   a:`Rods are more light-sensitive and show greater peripheral convergence, allowing summation. The trade-off is poorer spatial resolution (Bear et al., pp. 310-311, 315).`},
+  {type:'mechanism',
+   q:`Why does foveal cone vision give high visual acuity?`,
+   a:`Foveal cones have very low convergence, approaching one-to-one wiring with ganglion cells, so location details are preserved (Bear et al., pp. 310-311).`},
+  {type:'mechanism',
+   q:`In darkness, are photoreceptors relatively depolarized or hyperpolarized? What changes in light?`,
+   a:`They are depolarized in the dark by the dark current. Light lowers cGMP, closes Na+ channels, and hyperpolarizes the photoreceptor (Bear et al., pp. 312-315).`},
+  {type:'mechanism',
+   q:`What molecule changes shape when light activates rhodopsin?`,
+   a:`Retinal changes from an inactive cis conformation to an activated trans conformation inside the opsin protein (Bear et al., pp. 313-314).`},
+  {type:'mechanism',
+   q:`Why do ON and OFF bipolar cells respond oppositely to light?`,
+   a:`Photoreceptors change glutamate release with light. OFF bipolar cells depolarize to glutamate, while ON bipolar cells use G-protein-coupled receptors and depolarize when light reduces glutamate (Bear et al., pp. 321-322).`},
+  {type:'mechanism',
+   q:`What makes retinal ganglion cells good at detecting edges and contrast?`,
+   a:`Their receptive fields are center-surround: light in the center and surround has opposite effects, so uniform light cancels but edges change firing strongly (Bear et al., pp. 323-324).`},
+  {type:'mechanism',
+   q:`Why does staring at a colored bird produce a bird in complementary colors afterward?`,
+   a:`Trichromatic coding alone is not enough; color-opponent processing and local adaptation help produce complementary afterimages (Bear et al., pp. 318-319, 325).`},
+  {type:'mechanism',
+   q:`At the optic chiasm, which retinal fibers cross?`,
+   a:`Nasal retinal fibers cross; temporal retinal fibers stay ipsilateral. This makes each hemisphere represent the contralateral visual field (Bear et al., pp. 312-313).`},
+  {type:'mechanism',
+   q:`What are the three main destinations mentioned for optic tract information?`,
+   a:`Most goes to LGN for conscious vision; some goes to hypothalamic and midbrain targets, including pathways for biological rhythms, pupil control, and eye movements (Bear et al., pp. 313-315).`},
+  {type:'mechanism',
+   q:`How are signals organized inside the LGN?`,
+   a:`They are segregated by eye of origin and ganglion-cell type. Layers 1-2 are magnocellular, layers 3-6 parvocellular, with koniocellular layers between (Bear et al., pp. 316-318).`},
+  {type:'mechanism',
+   q:`What does retinotopy mean in V1?`,
+   a:`Neighboring points on the retina project to neighboring points in LGN and V1. The map is distorted because central vision is overrepresented (Bear et al., pp. 319-320).`},
+  {type:'mechanism',
+   q:`Why does a V1 simple cell prefer one bar orientation?`,
+   a:`Aligned inputs from earlier center-surround cells create an elongated receptive field. The cell is position- and orientation-selective with distinct excitatory and inhibitory zones (Bear et al., pp. 325-327).`},
+  {type:'mechanism',
+   q:`What is the key difference between simple and complex cells in V1?`,
+   a:`Both can be orientation-selective, but simple cells have clear excitatory/inhibitory subregions and strong position selectivity; complex cells tolerate more position shift within the receptive field (Bear et al., pp. 327-328).`},
+  {type:'mechanism',
+   q:`How does binocular disparity help depth perception?`,
+   a:`The two eyes receive slightly different images. The difference is larger for close objects, and binocular neurons use the disparity to support depth perception (Bear et al., pp. 324, 338-340).`},
+
+  // — CHALLENGE (4) —
+  {type:'challenge', id:'blindspot',
+   title:'Blind Spot Finder',
+   desc:'A red dot will move slowly across the screen. <strong>Close your left eye</strong>, stare at the white + cross with your right eye — do not move your gaze — and <strong>click the moment the dot disappears</strong>. You will be locating your actual optic disc.',
+   a:'The blind spot is the optic disk, where optic nerve fibers and retinal vessels leave the eye. There are no photoreceptors there, yet perception usually appears seamless (Bear et al., pp. 297-298).'},
+  {type:'challenge', id:'afterimage',
+   title:'Colour Afterimage',
+   desc:'<strong>Stare at the central dot</strong> in the displayed image for 20 seconds without moving your eyes. The screen will then switch to grey — keep staring at the dot and report what colours you see.',
+   a:'A negative afterimage appears because local color adaptation and color-opponent processing shift the response after prolonged stimulation (Bear et al., pp. 318-319, 325).'},
+  {type:'challenge', id:'motion',
+   title:'Motion Aftereffect',
+   desc:'<strong>Watch the expanding rings for 15 seconds</strong>, keeping your eyes fixed on the centre dot. When the rings stop, continue staring — the static rings should appear to contract.',
+   a:'Sustained motion adapts direction-selective motion channels. Area MT/V5 is central for motion processing, and dorsal stream areas beyond MT include neurons sensitive to radial motion such as expansion and contraction (Bear et al., pp. 334-335).'},
+  {type:'challenge', id:'dominanteye',
+   title:'Dominant Eye Test',
+   desc:'Make a small <strong>triangle with your hands</strong>, center a distant object in it with both eyes open, then test which eye keeps the target aligned.',
+   a:'The eye that keeps the distant target centered when the other eye closes is the dominant eye. In V1, inputs from the two eyes are organized into ocular dominance columns, and many cortical neurons show eye preference (Bear et al., pp. 322-324).'},
+];
+
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+const G = {
+  teams:['Team A','Team B'], scores:[0,0],
+  active:0, deck:[], pos:0, card:null, phase:'setup', challenger:null,
+  timerMax:30, timerLeft:0, timerInt:null, rAF:null,
+};
+
+
+// ═══════════════════════════════════
+// UTILS
+// ═══════════════════════════════════
+const $  = id => document.getElementById(id);
+function shuffle(a) {
+  a=[...a];
+  for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function stopTimer(){clearInterval(G.timerInt);G.timerInt=null;}
+function stopRAF(){if(G.rAF){cancelAnimationFrame(G.rAF);G.rAF=null;}}
+function stopAll(){stopTimer();stopRAF();}
+function cardsLeft(){return G.deck.length-G.pos;}
+function tc(i){return i===0?'var(--t0)':'var(--t1)';}
+function btnCls(i){return i===0?'btn-lesion':'btn-mech';}
+
+
+// ═══════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════
+function showScreen(n){
+  ['screen-setup','screen-game','screen-end'].forEach(id=>$(id).hidden=id!=='screen-'+n);
+}
+
+
+// ═══════════════════════════════════
+// HUD
+// ═══════════════════════════════════
+function updateHUD(){
+  $('hname0').textContent=G.teams[0]; $('hname1').textContent=G.teams[1];
+  $('hscore0').textContent=G.scores[0]; $('hscore1').textContent=G.scores[1];
+  $('hud-deck').textContent=cardsLeft();
+  $('hud-t0').classList.toggle('active',G.active===0);
+  $('hud-t1').classList.toggle('active',G.active===1);
+}
+
+
+// ═══════════════════════════════════
+// GAME INIT
+// ═══════════════════════════════════
+function startGame(){
+  G.teams=[$('inp-t1').value.trim()||'Team A', $('inp-t2').value.trim()||'Team B'];
+  G.scores=[0,0]; G.active=0; G.deck=shuffle(CARDS); G.pos=0; G.card=null; G.challenger=null;
+  showScreen('game'); updateHUD(); drawCard();
+}
+
+
+// ═══════════════════════════════════
+// PHASE ENGINE
+// ═══════════════════════════════════
+function setPhase(p){stopAll();G.phase=p;updateHUD();renderPhase();}
+
+function drawCard(){
+  if(G.pos>=G.deck.length){setPhase('end');return;}
+  G.card=G.deck[G.pos++]; G.challenger=null; updateHUD();
+  setPhase(G.card.type==='challenge'?'ch_intro':'question');
+}
+
+function awardPts(team,pts){
+  if(pts<=0)return;
+  G.scores[team]+=pts; updateHUD();
+  const s=$('hscore'+team);
+  s.classList.add('flash');
+  setTimeout(()=>s.classList.remove('flash'),650);
+}
+
+function checkEnd(){return G.scores[0]>=20||G.scores[1]>=20||cardsLeft()===0;}
+
+// Award helpers — safe to call from onclick (read G at call time)
+function doCorrect(){awardPts(G.active,1);_afterAward();}
+function doWrong(){_afterAward();}
+function startOppChallenge(){G.challenger=1-G.active;setPhase('opp_challenge');}
+function doOppCorrect(){awardPts(G.challenger ?? (1-G.active),1);_afterAward();}
+function doOppWrong(){_afterAward();}
+function doCh1(){awardPts(G.active,1);_afterAward();}
+function doCh0(){_afterAward();}
+function _afterAward(){if(checkEnd()){setPhase('end');}else{setPhase('next_turn');}}
+function passToNext(){G.active=1-G.active;updateHUD();drawCard();}
+
+
+// ═══════════════════════════════════
+// TIMER
+// ═══════════════════════════════════
+function startTimer(sec,onEnd){
+  stopTimer();
+  G.timerMax=sec; G.timerLeft=sec; _timerDOM();
+  G.timerInt=setInterval(()=>{
+    G.timerLeft=Math.max(0,G.timerLeft-1);
+    _timerDOM();
+    if(G.timerLeft===0){stopTimer();onEnd();}
+  },1000);
+}
+function _timerDOM(){
+  const bar=$('tbar'),lbl=$('tlbl');
+  if(!bar||!lbl)return;
+  const p=G.timerLeft/G.timerMax*100;
+  bar.style.width=p+'%';
+  bar.style.background=p>50?'#4ade80':p>20?'#fbbf24':'#f87171';
+  lbl.textContent=G.timerLeft+'s';
+}
+
+
+// ═══════════════════════════════════
+// RENDER
+// ═══════════════════════════════════
+function setArea(h){$('card-area').innerHTML=h;}
+function setBanner(h){$('turn-banner').innerHTML=h;}
+
+function renderPhase(){
+  const c=G.card;
+  const A=G.active, T=G.teams[A], TC=tc(A), BC=btnCls(A);
+
+  switch(G.phase){
+
+  case 'draw':
+    setBanner(`<span style="color:${TC}">${T}</span> — draw a card`);
+    setArea(`
+      <div class="card-back" onclick="drawCard()">
+        <div class="card-back-icon">&#9632;</div>
+        <div style="color:var(--text);font-size:1rem;font-weight:700;margin-top:4px">Draw Card</div>
+        <div class="card-back-sub">${cardsLeft()} card${cardsLeft()!==1?'s':''} remaining</div>
+      </div>`);
+    break;
+
+  case 'question':{
+    const isL=c.type==='lesion';
+    setBanner(`<span style="color:${TC}">${T}</span> — ${isL?'identify the damaged structure':'explain the mechanism'}`);
+    setArea(`
+      <div class="card">
+        <span class="badge ${isL?'badge-lesion':'badge-mech'}">${isL?'&#11044; Lesion':'&#9650; Mechanism'} &nbsp;1 pt</span>
+        <div class="card-q">${c.q}</div>
+        <div class="timer-wrap">
+          <div class="timer-head"><span>30 seconds</span><span id="tlbl">30s</span></div>
+          <div class="timer-track"><div id="tbar" class="timer-bar" style="width:100%;background:#4ade80"></div></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn ${BC}" onclick="setPhase('reveal')">Reveal Answer</button>
+        <button class="btn btn-ghost" onclick="startOppChallenge()">Pass Unrevealed to Opponent</button>
+      </div>`);
+    startTimer(30,()=>setPhase('reveal'));
+    break;
+  }
+
+  case 'reveal':{
+    stopTimer();
+    const isL=c.type==='lesion';
+    setBanner(`Answer revealed — award points for <span style="color:${TC}">${T}</span>`);
+    setArea(`
+      <div class="card">
+        <span class="badge ${isL?'badge-lesion':'badge-mech'}">${isL?'&#11044; Lesion':'&#9650; Mechanism'} &nbsp;1 pt</span>
+        <div class="card-q">${c.q}</div>
+        <hr class="sep">
+        <div class="card-a ${isL?'lesion':'mech'}">
+          <div class="a-label">Answer</div>
+          <div class="a-text">${c.a}</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ok" onclick="doCorrect()">&#10003; Correct (+1 pt)</button>
+        <button class="btn btn-ghost" onclick="doWrong()">&#10007; Wrong (0 pts)</button>
+      </div>`);
+    break;
+  }
+
+  case 'opp_challenge':{
+    const opp=G.challenger ?? (1-A), OT=G.teams[opp], OC=tc(opp), OB=btnCls(opp);
+    setBanner(`Opponent challenge — <span style="color:${OC}">${OT}</span>`);
+    setArea(`
+      <div class="card">
+        <span class="badge ${c.type==='lesion'?'badge-lesion':'badge-mech'}">${c.type==='lesion'?'&#11044; Lesion':'&#9650; Mechanism'}</span>
+        <div class="card-q">${c.q}</div>
+        <div class="timer-wrap">
+          <div class="timer-head"><span>30 seconds</span><span id="tlbl">30s</span></div>
+          <div class="timer-track"><div id="tbar" class="timer-bar" style="width:100%;background:#4ade80"></div></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn ${OB}" onclick="setPhase('opp_reveal')">Reveal Answer</button>
+      </div>`);
+    startTimer(30,()=>setPhase('opp_reveal'));
+    break;
+  }
+
+  case 'opp_reveal':{
+    stopTimer();
+    const opp=G.challenger ?? (1-A), OT=G.teams[opp], OC=tc(opp);
+    setBanner(`Answer revealed — award points for <span style="color:${OC}">${OT}</span>`);
+    setArea(`
+      <div class="card">
+        <span class="badge ${c.type==='lesion'?'badge-lesion':'badge-mech'}">${c.type==='lesion'?'&#11044; Lesion':'&#9650; Mechanism'} &nbsp;1 pt</span>
+        <div class="card-q">${c.q}</div>
+        <hr class="sep">
+        <div class="card-a ${c.type==='lesion'?'lesion':'mech'}">
+          <div class="a-label">Answer</div>
+          <div class="a-text">${c.a}</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ok" onclick="doOppCorrect()">&#10003; Correct (+1 pt)</button>
+        <button class="btn btn-ghost" onclick="doOppWrong()">&#10007; Wrong (0 pts)</button>
+      </div>`);
+    break;
+  }
+
+  case 'next_turn':{
+    const nxt=1-A, NT=G.teams[nxt], NC=tc(nxt), NB=btnCls(nxt);
+    setBanner('');
+    setArea(`
+      <div class="pass-card">
+        <div class="pass-to">Pass the screen to</div>
+        <div class="pass-name" style="color:${NC}">${NT}</div>
+        <button class="btn ${NB}" onclick="passToNext()">Draw Card &#8594;</button>
+      </div>`);
+    break;
+  }
+
+  // ── Challenge ──
+
+  case 'ch_intro':
+    setBanner(`<span style="color:var(--gold)">&#9670; Challenge Card</span> — <span style="color:${TC}">${T}</span>`);
+    setArea(`
+      <div class="card" style="border-color:var(--gold)">
+        <span class="badge badge-gold">&#9670; Challenge &nbsp;1 pt</span>
+        <div style="font-size:1.2rem;font-weight:700;margin-bottom:10px">${c.title}</div>
+        <div class="card-q">${c.desc}</div>
+        <div style="margin-top:14px;padding:11px;background:var(--surf2);border-radius:8px;font-size:.8rem;color:var(--dim)">
+          <strong style="color:var(--gold)">Scoring:</strong> &nbsp;1 pt — correct mechanism &nbsp;|&nbsp; 0 pts — wrong
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-gold" onclick="setPhase('ch_demo')">Launch Demo &#9654;</button>
+      </div>`);
+    break;
+
+  case 'ch_demo':
+    setBanner(`<span style="color:var(--gold)">&#9670; ${c.title}</span>`);
+    setArea(`
+      <div class="card" style="border-color:var(--gold)">
+        <span class="badge badge-gold">&#9670; ${c.title}</span>
+        <div class="demo-wrap" id="demo-body">
+          <div class="demo-instr" id="demo-instr">Loading…</div>
+        </div>
+        <div id="demo-next" hidden style="margin-top:2px">
+          <button class="btn btn-gold" style="width:100%" onclick="setPhase('ch_question')">Demo complete — Start 45s mechanism timer &#8594;</button>
+        </div>
+      </div>`);
+    // Run demo after DOM is ready
+    requestAnimationFrame(()=>{
+      const body=$('demo-body');
+      if(!body)return;
+      switch(c.id){
+        case 'blindspot': demoBlindspot(body); break;
+        case 'afterimage': demoAftimage(body); break;
+        case 'motion': demoMotion(body); break;
+        case 'dominanteye': demoDominantEye(body); break;
+      }
+    });
+    break;
+
+  case 'ch_question':
+    setBanner(`<span style="color:var(--gold)">&#9670; ${c.title}</span> — name the mechanism`);
+    setArea(`
+      <div class="card" style="border-color:var(--gold)">
+        <span class="badge badge-gold">&#9670; Mechanism Question</span>
+        <div class="card-q">You experienced the demo. Now explain: <strong>what is the neurological mechanism behind what you just saw?</strong></div>
+        <div class="timer-wrap" style="margin-top:16px">
+          <div class="timer-head"><span>45 seconds to discuss</span><span id="tlbl">45s</span></div>
+          <div class="timer-track"><div id="tbar" class="timer-bar" style="width:100%;background:#4ade80"></div></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-gold" onclick="setPhase('ch_reveal')">Reveal Answer</button>
+      </div>`);
+    startTimer(45,()=>setPhase('ch_reveal'));
+    break;
+
+  case 'ch_reveal':
+    stopTimer();
+    setBanner(`<span style="color:var(--gold)">&#9670; ${c.title}</span> — award points for <span style="color:${TC}">${T}</span>`);
+    setArea(`
+      <div class="card" style="border-color:var(--gold)">
+        <span class="badge badge-gold">&#9670; ${c.title}</span>
+        <div class="card-q">What is the neurological mechanism?</div>
+        <hr class="sep">
+        <div class="card-a gold">
+          <div class="a-label">Answer</div>
+          <div class="a-text">${c.a}</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-gold" onclick="doCh1()">&#10003; Correct (+1 pt)</button>
+        <button class="btn btn-ghost btn-sm" onclick="doCh0()">Wrong (0 pts)</button>
+      </div>`);
+    break;
+
+  case 'end':
+    showScreen('end');
+    renderEnd();
+    break;
+  }
+}
+
+
+function renderEnd(){
+  const [s0,s1]=G.scores;
+  let title='';
+  if(s0>s1) title=`<div class="end-title">${G.teams[0]} Wins!</div>`;
+  else if(s1>s0) title=`<div class="end-title">${G.teams[1]} Wins!</div>`;
+  else title=`<div style="font-size:2.5rem;font-weight:900;color:var(--text)">It's a Tie!</div>`;
+  $('end-content').innerHTML=`
+    ${title}
+    <div class="end-scores">
+      <div class="end-scard${s0>s1?' winner':''}">
+        <div class="end-sname">${G.teams[0]}</div>
+        <div class="end-spts">${s0}</div>
+        <div class="end-sub">points</div>
+      </div>
+      <div class="end-scard${s1>s0?' winner':''}">
+        <div class="end-sname">${G.teams[1]}</div>
+        <div class="end-spts">${s1}</div>
+        <div class="end-sub">points</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="max-width:200px" onclick="backToSetup()">Play Again</button>`;
+}
+
+function backToSetup(){stopAll();showScreen('setup');}
+
+
+// ═══════════════════════════════════
+// DEMOS
+// ═══════════════════════════════════
+
+// ── Blind Spot Finder ──
+function demoBlindspot(container){
+  $('demo-instr').innerHTML=`
+    <strong>Instructions:</strong><br>
+    1. Sit ~50 cm from the screen &nbsp; 2. Close your <strong>left eye</strong><br>
+    3. Stare at the <strong>white + cross</strong> with your right eye — do not move it<br>
+    4. <strong>Click</strong> the instant the red dot vanishes<br>
+    <em style="font-size:.75rem">If the dot never disappears, try adjusting your distance from the screen</em>`;
+
+  const canvas=document.createElement('canvas');
+  canvas.width=1040; canvas.height=260;
+  canvas.style.width='100%'; canvas.style.cursor='crosshair';
+  canvas.style.maxWidth='100%';
+  container.appendChild(canvas);
+
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const fixX=Math.round(W*0.12), fixY=H/2;
+  const speed=66; // px/sec
+  let t0=null, dotX=W*0.04, spotX=null, running=true;
+
+  canvas.addEventListener('click',e=>{
+    if(!running)return;
+    spotX=dotX;
+    running=false; showResult();
+  });
+
+  function frame(ts){
+    if(!t0)t0=ts;
+    dotX=W*0.04+(ts-t0)/1000*speed;
+
+    ctx.fillStyle='#0d0f18'; ctx.fillRect(0,0,W,H);
+
+    // hint text
+    ctx.fillStyle='#353860'; ctx.font='13px system-ui';
+    ctx.fillText('Close left eye — stare at + — click when dot vanishes',fixX+26,22);
+
+    ctx.strokeStyle='#242844'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(fixX,fixY+34); ctx.lineTo(W-24,fixY+34); ctx.stroke();
+
+    // fixation cross
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2.5;
+    ctx.beginPath();
+    ctx.moveTo(fixX-13,fixY); ctx.lineTo(fixX+13,fixY);
+    ctx.moveTo(fixX,fixY-13); ctx.lineTo(fixX,fixY+13);
+    ctx.stroke();
+
+    // dot (always drawn — disappears due to user's physiology, not code)
+    if(dotX<W+20){
+      ctx.fillStyle='#e05252';
+      ctx.beginPath(); ctx.arc(dotX,fixY,11,0,Math.PI*2); ctx.fill();
+    }
+
+    if(dotX>W+30){running=false;showResult();return;}
+    if(running) G.rAF=requestAnimationFrame(frame);
+  }
+
+  function showResult(){
+    stopRAF();
+    ctx.fillStyle='#0d0f18'; ctx.fillRect(0,0,W,H);
+    // draw cross
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2.5;
+    ctx.beginPath();
+    ctx.moveTo(fixX-13,fixY); ctx.lineTo(fixX+13,fixY);
+    ctx.moveTo(fixX,fixY-13); ctx.lineTo(fixX,fixY+13);
+    ctx.stroke();
+
+    if(spotX!==null){
+      ctx.strokeStyle='#242844'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(fixX,fixY+34); ctx.lineTo(W-24,fixY+34); ctx.stroke();
+      // gold ring at the red dot's position when the user clicked
+      ctx.strokeStyle='#f0b429'; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.arc(spotX,fixY,18,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(spotX,fixY-44); ctx.lineTo(spotX,fixY+44); ctx.stroke();
+      // ghost dot
+      ctx.fillStyle='rgba(224,82,82,.2)';
+      ctx.beginPath(); ctx.arc(spotX,fixY,11,0,Math.PI*2); ctx.fill();
+      // label
+      ctx.fillStyle='#f0b429'; ctx.font='bold 15px system-ui';
+      const lbl='Red dot position when clicked';
+      const tw=ctx.measureText(lbl).width;
+      ctx.fillText(lbl,Math.max(8,Math.min(W-tw-8,spotX-tw/2)),fixY-54);
+      // distance
+      ctx.fillStyle='#6b7090'; ctx.font='13px system-ui';
+      const dlbl=`${Math.round(spotX-fixX)} px from fixation`;
+      const dtw=ctx.measureText(dlbl).width;
+      ctx.fillText(dlbl,Math.max(8,Math.min(W-dtw-8,spotX-dtw/2)),fixY+64);
+
+      $('demo-instr').innerHTML=`<strong style="color:var(--gold)">Found it!</strong> The red dot was ~${Math.round(spotX-fixX)} px to the right of the fixation cross when you clicked — that maps to your <strong>optic disc</strong>.`;
+    } else {
+      ctx.fillStyle='#6b7090'; ctx.font='13px system-ui';
+      ctx.fillText('Dot finished its path. Try adjusting your distance.',W/2-160,fixY+36);
+      $('demo-instr').innerHTML='The dot completed its path without a click. Try again at a different distance from the screen.';
+    }
+    const n=$('demo-next'); if(n) n.hidden=false;
+  }
+
+  G.rAF=requestAnimationFrame(frame);
+}
+
+
+// ── Colour Afterimage ──
+function demoAftimage(container){
+  $('demo-instr').innerHTML='<strong>Stare at the centre dot for 20 seconds</strong> without moving your eyes. Screen switches to grey — keep staring.';
+
+  // Inverted colour grid (target colours: red, green, blue, orange → displayed inverted)
+  const wrap=document.createElement('div');
+  wrap.className='aft-wrap';
+
+  const grid=document.createElement('div');
+  grid.className='aft-grid'; grid.id='aft-grid';
+  ['#ff0000','#00bb00','#0000ff','#ff8800'].forEach(col=>{
+    const d=document.createElement('div'); d.style.background=col; grid.appendChild(d);
+  });
+  grid.style.filter='invert(1)';
+
+  const dot=document.createElement('div'); dot.className='aft-dot';
+  wrap.appendChild(grid); wrap.appendChild(dot);
+  container.appendChild(wrap);
+
+  const cntEl=document.createElement('div');
+  cntEl.style.cssText='font-size:1rem;font-weight:700;color:var(--dim);text-align:center;';
+  cntEl.textContent='Staring phase: 20s';
+  container.appendChild(cntEl);
+
+  let sec=20;
+  G.timerInt=setInterval(()=>{
+    sec--;
+    if(sec>0){
+      cntEl.textContent=`Staring phase: ${sec}s`;
+    } else {
+      stopTimer();
+      // Switch to uniform grey
+      const g=$('aft-grid');
+      if(g){
+        g.style.filter='none';
+        [...g.children].forEach(d=>d.style.background='#808080');
+      }
+      cntEl.textContent='What colours do you see? Keep staring at the dot.';
+      cntEl.style.color='var(--gold)';
+      setTimeout(()=>{const n=$('demo-next');if(n)n.hidden=false;},4000);
+    }
+  },1000);
+}
+
+
+// ── Motion Aftereffect ──
+function demoMotion(container){
+  $('demo-instr').innerHTML='<strong>Watch the expanding rings for 15 seconds</strong> — stare at the gold dot in the centre. When the rings stop, keep staring.';
+
+  const canvas=document.createElement('canvas');
+  canvas.width=400; canvas.height=400;
+  canvas.style.maxWidth='380px'; canvas.style.width='100%';
+  container.appendChild(canvas);
+
+  const cntEl=document.createElement('div');
+  cntEl.style.cssText='font-size:.95rem;font-weight:700;color:var(--dim);text-align:center;';
+  cntEl.textContent='Expanding: 15s';
+  container.appendChild(cntEl);
+
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const cx=W/2, cy=H/2, maxR=Math.min(W,H)/2-8;
+  const nRings=13, spacing=maxR/nRings, ringSpd=28;
+  let offset=0, lastTs=null, elapsed=0, animating=true;
+
+  function frame(ts){
+    const dt=lastTs?(ts-lastTs)/1000:0; lastTs=ts;
+    if(animating){elapsed+=dt; offset=(offset+ringSpd*dt)%spacing;}
+
+    ctx.fillStyle='#0d0f18'; ctx.fillRect(0,0,W,H);
+    for(let i=0;i<nRings*2;i++){
+      const r=(i*spacing+offset)%maxR;
+      if(r<1)continue;
+      const norm=r/maxR;
+      ctx.strokeStyle=`rgba(255,255,255,${0.12+(1-norm)*0.72})`;
+      ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+    }
+    // Centre dot
+    ctx.fillStyle='#f0b429';
+    ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill();
+
+    if(animating){
+      const rem=Math.ceil(Math.max(0,15-elapsed));
+      cntEl.textContent=rem>0?`Expanding: ${rem}s`:'Stopped — do you see contraction?';
+      if(elapsed>=15){
+        animating=false;
+        cntEl.textContent='Rings stopped! Do they appear to contract?';
+        cntEl.style.color='var(--gold)';
+        setTimeout(()=>{const n=$('demo-next');if(n)n.hidden=false;},3000);
+      }
+      G.rAF=requestAnimationFrame(frame);
+    }
+  }
+  G.rAF=requestAnimationFrame(frame);
+}
+
+
+// ── Dominant Eye Test ──
+function demoDominantEye(container){
+  $('demo-instr').innerHTML=`
+    <strong>Make a small triangle with your hands</strong>, hold it at arm's length, and center a distant object inside it with both eyes open.
+    Then close one eye, switch eyes, and report which eye keeps the object centered.`;
+
+  const target=document.createElement('div');
+  target.className='dom-target-panel';
+  target.innerHTML='<div class="dom-target"></div>';
+  container.appendChild(target);
+
+  const note=document.createElement('div');
+  note.style.cssText='max-width:760px;text-align:center;color:var(--dim);font-size:.98rem;line-height:1.6';
+  note.innerHTML='Use a real distant object in the room. With both eyes open, align it through the triangle made by your hands. The dominant eye is the one that keeps the target in the opening when the other eye closes.';
+  container.appendChild(note);
+
+  const choices=document.createElement('div');
+  choices.className='dom-choice';
+  choices.innerHTML=`
+    <button class="btn btn-gold btn-sm" data-eye="Left">Left eye kept it centered</button>
+    <button class="btn btn-gold btn-sm" data-eye="Right">Right eye kept it centered</button>
+    <button class="btn btn-ghost btn-sm" data-eye="Neither">It was unclear</button>`;
+  container.appendChild(choices);
+
+  const result=document.createElement('div');
+  result.className='dom-result';
+  container.appendChild(result);
+
+  choices.addEventListener('click',e=>{
+    const btn=e.target.closest('button');
+    if(!btn)return;
+    const eye=btn.dataset.eye;
+    result.textContent=eye==='Neither'
+      ? 'Try again with a smaller hand opening and a farther target.'
+      : `${eye} eye dominant for this target.`;
+    const n=$('demo-next'); if(n) n.hidden=false;
+  });
+}
+
+
+// ═══════════════════════════════════
+// BOOT
+// ═══════════════════════════════════
+showScreen('setup');
+</script>
+</body>
+</html>
